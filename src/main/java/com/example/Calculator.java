@@ -1,3 +1,6 @@
+// This is a test comment to trigger the CI/CD pipeline.
+// Created to test GitHub Actions
+package com.example;
 
 import java.util.Scanner;
 
