@@ -1,0 +1,50 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Запускаем workflow при пуше в ветку main
+  pull_request:
+    branches:
+      - main  # Запускаем workflow при создании pull request в ветку main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'  # Указываем версию Node.js
+
+      - name: Install dependencies
+        run: npm install  # Устанавливаем зависимости проекта
+
+      - name: Build project
+        run: npm run build  # Собираем проект, если необходимо
+
+      - name: Run tests
+        run: npm test # Запускаем тесты
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to remote host via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }} # Получаем хост из секретов
+          username: ${{ secrets.SSH_USER }} # Получаем юзера из секретов
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Получаем приватный ключ из секретов
+          port: ${{ secrets.SSH_PORT }} # Получаем порт из секретов
+          script: |
+            cd /path/to/your/app/on/server
+            git pull origin main
+            npm install
+            npm run build  
+            pm2 restart calculator
