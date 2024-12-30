@@ -1,50 +1,31 @@
-name: CI/CD Pipeline
+name: Java CI with Maven
 
 on:
   push:
     branches:
-      - main # Запускаем workflow при пуше в ветку main
+      - main  # Триггер на пуш в ветку main
   pull_request:
     branches:
-      - main  # Запускаем workflow при создании pull request в ветку main
+      - main  # Триггер на создание PR в ветку main
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest  # Операционная система для сборки
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'  # Указываем версию Node.js
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'  # Устанавливаем Java 11
 
-      - name: Install dependencies
-        run: npm install  # Устанавливаем зависимости проекта
+    - name: Build with Maven
+      run: mvn clean install  # Сборка проекта с помощью Maven
 
-      - name: Build project
-        run: npm run build  # Собираем проект, если необходимо
+    - name: Run tests
+      run: mvn test  # Запуск тестов
 
-      - name: Run tests
-        run: npm test # Запускаем тесты
-
-  deploy:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy to remote host via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SSH_HOST }} # Получаем хост из секретов
-          username: ${{ secrets.SSH_USER }} # Получаем юзера из секретов
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Получаем приватный ключ из секретов
-          port: ${{ secrets.SSH_PORT }} # Получаем порт из секретов
-          script: |
-            cd /path/to/your/app/on/server
-            git pull origin main
-            npm install
-            npm run build  
-            pm2 restart calculator
+    - name: Deploy
+      run: echo "Deploy step"  # Тут можно добавить шаг для деплоя (например, на сервер)
